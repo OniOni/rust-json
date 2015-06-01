@@ -1,5 +1,6 @@
 extern crate json;
 
 fn main() {
-    json::parser::parse("{'key': 42}");
+    let json = json::parser::parse("{'key': 42}");
+    println!("{:?}", json);
 }

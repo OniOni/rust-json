@@ -1,10 +1,12 @@
-#![feature(slicing_syntax)]
+#![feature(collections)]
 
-extern crate core;
+extern crate collections;
 
 pub mod parser {
 
-    use core::str::Chars as Chars;
+    use collections::fmt::{Formatter, Result};
+    use std::fmt::Debug;
+    use collections::str::Chars;
     use std::collections::BTreeMap;
     use std::string;
 
@@ -18,6 +20,17 @@ pub mod parser {
 
     pub type Array = Vec<Json>;
     pub type Object = BTreeMap<string::String, Json>;
+
+    impl Debug for Json {
+        fn fmt(&self, f: &mut Formatter) -> Result {
+            match *self {
+                Json::String(ref string) => String::fmt(string, f),
+                Json::Object(ref obj) => BTreeMap::fmt(obj, f),
+                Json::U64(ref int) => Debug::fmt(int, f),
+                _ => panic!("Noooo!")
+            }
+        }
+    }
 
     fn parse_value(it: &mut Chars) -> Json {
         match it.next() {
