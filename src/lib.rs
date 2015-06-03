@@ -32,6 +32,23 @@ pub mod parser {
         }
     }
 
+    fn parse_string(it: &mut Chars) -> String {
+        let mut string = "".to_string();
+
+        loop {
+            match it.next() {
+                Some('"') => {
+                    break;
+                },
+                Some('\\') => continue,
+                Some(c) => string.push(c),
+                None => panic!("Reached end of iterator.")
+            }
+        }
+
+        return string;
+    }
+
     fn parse_value(it: &mut Chars) -> Json {
         match it.next() {
             Some(' ') => parse_value(it),
@@ -52,19 +69,19 @@ pub mod parser {
     }
 
     fn parse_object(it: &mut Chars) -> Json {
-        let mut collector = "".to_string();
         let mut object = BTreeMap::new();
+        let mut key = "".to_string();
+
         loop {
             match it.next() {
                 Some(':') => {
-                    object.insert(collector, parse_value(it));
-                    collector = "".to_string();
+                    object.insert(key, parse_value(it));
+                    key = "".to_string();
                 },
-                Some(',') => {collector = "".to_string()},
-                Some('}') => break,
-                Some(c) => {
-                    collector.push(c);
+                Some('"') => {
+                    key = parse_string(it);
                 },
+                Some(_) => continue,
                 None => break
             }
         }
