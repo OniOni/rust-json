@@ -53,6 +53,7 @@ pub mod parser {
         match it.next() {
             Some(' ') => parse_value(it),
             Some('{') => parse_object(it),
+            Some('"') => Json::String(parse_string(it)),
             Some(c) => {
                 if c.is_digit(10) {
                     let mut num_str = c.to_string();
