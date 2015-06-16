@@ -84,10 +84,7 @@ pub mod parser {
                 Some(']') => break,
                 None => break,
                 Some(',') => ar.push(parse_value(it)),
-                Some(c) => {
-                    println!("Skipping {:?}", c);
-                    continue
-                }
+                Some(_) => continue
             }
         }
         Json::Array(ar)
