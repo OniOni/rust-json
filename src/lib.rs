@@ -27,6 +27,7 @@ pub mod parser {
                 Json::String(ref string) => String::fmt(string, f),
                 Json::Object(ref obj) => BTreeMap::fmt(obj, f),
                 Json::U64(ref int) => Debug::fmt(int, f),
+                Json::Array(ref ar) => Debug::fmt(ar, f),
                 _ => panic!("Noooo!")
             }
         }
@@ -49,24 +50,47 @@ pub mod parser {
         return string;
     }
 
+    fn parse_int(it: &Chars, c: char) -> Json {
+        let mut num_str = c.to_string();
+        let clo = it.clone();
+        for car in clo.take_while(|a| a.is_digit(10)) {
+            num_str.push(car);
+        }
+        Json::U64(num_str.parse::<u64>().unwrap())
+    }
+
     fn parse_value(it: &mut Chars) -> Json {
         match it.next() {
             Some(' ') => parse_value(it),
             Some('{') => parse_object(it),
             Some('"') => Json::String(parse_string(it)),
+            Some('[') => parse_array(it),
             Some(c) => {
                 if c.is_digit(10) {
-                    let mut num_str = c.to_string();
-                    for car in it.take_while(|a| a.is_digit(10)) {
-                        num_str.push(car);
-                    }
-                    Json::U64(num_str.parse::<u64>().unwrap())
+                    parse_int(it, c)
                 } else {
                     Json::Null
                 }
             },
             None => Json::Null
         }
+    }
+
+    fn parse_array(it: &mut Chars) -> Json {
+        let mut ar: Array = vec![parse_value(it)];
+
+        loop {
+            match it.next() {
+                Some(']') => break,
+                None => break,
+                Some(',') => ar.push(parse_value(it)),
+                Some(c) => {
+                    println!("Skipping {:?}", c);
+                    continue
+                }
+            }
+        }
+        Json::Array(ar)
     }
 
     fn parse_object(it: &mut Chars) -> Json {
@@ -82,6 +106,7 @@ pub mod parser {
                 Some('"') => {
                     key = parse_string(it);
                 },
+                Some('}') => break,
                 Some(_) => continue,
                 None => break
             }
